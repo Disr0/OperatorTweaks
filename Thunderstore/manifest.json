@@ -1,0 +1,10 @@
+﻿{
+	"name": "OperatorTweaks",
+	"version_number": "1.0.0",
+	"website_url": "https://github.com/Disr0/OperatorTweaks",
+	"description": "All in one mod to tweak the gameplay as an operator.",
+	"dependencies": [
+		"bbepis-BepInExPack-5.4.2108",
+		"RiskofThunder-HookGenPatcher-1.2.3"
+	]
+}
