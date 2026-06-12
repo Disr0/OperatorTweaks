@@ -6,8 +6,8 @@ You can suggest new features for the mod using the github issues or by DMing me[
 
 Currently supports tweaks for:
 
-### FIREWALL (Shield)
-- Shield Transparency. 
+### FIREWALL (Utility / Shield)
+- Shield Transparency
 
 The percent of the original shield transparency
 
@@ -18,3 +18,11 @@ Seconds until the shield is fully charged up
 - Shield exit time
 
 Delay before the shield is sent flying after key release. Set to 0 for no delay
+
+### Ascent Protocol (Utility / Leap)
+- Use movement direction
+
+Makes the leap use movement direction of the character instead of your aim
+
+# Compatability
+Supports Risk Of Options. Requires reload on settings change

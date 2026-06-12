@@ -45,6 +45,10 @@ namespace OperatorTweaks
                 increment = 0.1f,
                 restartRequired = true
             }));
+            ModSettingsManager.AddOption(new CheckBoxOption(OperatorTweaksSettings.LeapUseMovementDirection, new CheckBoxConfig
+            {
+                restartRequired = true
+            }));
         }
     }
 }

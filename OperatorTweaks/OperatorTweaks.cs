@@ -1,8 +1,10 @@
 using BepInEx;
 using BepInEx.Configuration;
 using HG.GeneralSerializer;
+using Mono.Cecil.Cil;
+using MonoMod.Cil;
 using RoR2;
-using System.Reflection;
+using System;
 using UnityEngine;
 using UnityEngine.AddressableAssets;
 
@@ -13,6 +15,7 @@ namespace OperatorTweaks
         public static ConfigEntry<int> ShieldTransparency { get; set; }
         public static ConfigEntry<float> ShieldExitTime { get; set; }
         public static ConfigEntry<float> ShieldDurationForMaxCharge { get; set; }
+        public static ConfigEntry<bool> LeapUseMovementDirection{ get; set; }
     }
 
     [BepInPlugin(PluginGUID, PluginName, PluginVersion)]
@@ -32,6 +35,7 @@ namespace OperatorTweaks
             OperatorTweaksSettings.ShieldTransparency = Config.Bind("Shield", "Shield Transparency", 100, "The percent of the original shield transparency");
             OperatorTweaksSettings.ShieldDurationForMaxCharge = Config.Bind("Shield", "Shield Duration For Max Charge", 2f, "Seconds until the shield is fully charged up");
             OperatorTweaksSettings.ShieldExitTime = Config.Bind("Shield", "Shield exit time", 0.1f, "Delay before the shield is sent flying after key release. Set to 0 for no delay");
+            OperatorTweaksSettings.LeapUseMovementDirection = Config.Bind("Leap", "Use movement direction", false, "Makes the leap use movement direction of the character instead of your aim");
             if (RiskOfOptionsCompatability.Enabled)
             {
                 RiskOfOptionsCompatability.InitConfig();
@@ -42,6 +46,7 @@ namespace OperatorTweaks
                     "RoR2/DLC3/Drone Tech/EntityStates.DroneTech.Weapon.ShieldFormation.asset"
                 ).WaitForCompletion();
             ApplyShieldModifications(_shieldAsset);
+            ApplyLeapModifications();
         }
 
         private void ApplyShieldModifications(EntityStateConfiguration shieldAsset)
@@ -81,6 +86,37 @@ namespace OperatorTweaks
                         Log.Debug($"durationForMaxCharge now: {fields[i].fieldValue.stringValue}");
                         break;
                 }
+            }
+        }
+
+        private void ApplyLeapModifications()
+        {
+            if (OperatorTweaksSettings.LeapUseMovementDirection.Value == true)
+            {
+                IL.EntityStates.DroneTech.DroneLeap.OnEnter += il =>
+                {
+                    ILCursor c = new(il);
+
+                    if (c.TryGotoNext(
+                        MoveType.After,
+                        x => x.MatchStloc(0),
+                        x => x.MatchLdarg(0),
+                        x => x.MatchLdloca(0),
+                        x => x.MatchCallOrCallvirt<UnityEngine.Ray>("get_direction")
+                    ))
+                    {
+                        c.Emit(OpCodes.Pop);
+                        c.Emit(OpCodes.Ldarg_0);
+                        c.EmitDelegate<Func<EntityStates.DroneTech.DroneLeap, UnityEngine.Vector3>>(self =>
+                        {
+                            return self.inputBank?.moveVector ?? self.GetAimRay().direction;
+                        });
+                    }
+                    else
+                    {
+                        Log.Debug("Hook failed!");
+                    }
+                };
             }
         }
     }
